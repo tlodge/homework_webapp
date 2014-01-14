@@ -59,87 +59,6 @@ def formatMacAddress(mac):
 
     return mac[0:2] + ":" + mac[2:4] + ":" + mac[4:6] + ":" + mac[6:8] + ":" + mac[8:10] + ":" + mac[10:12]
 
-# def getMacAddress(str):
-#     if str.startswith('ETH|'):
-#         parts = str.split('|')
-#         return formatMacAddress(parts[1])
-# 
-#     elif str.startswith('IP|'):
-#         parts = str.split('|')
-#         ip = parts[1]
-#         if not is_valid_ip(ip):
-#             return None
-#         result = Homework._hwdb.call("SQL:SELECT * from Leases WHERE ipaddr = \"{}\"".format(ip))
-#         leases = parseResult(result)
-#         if len(leases) == 0:
-#             return None
-#         return leases[len(leases) - 1]['macaddr']
-#     else:
-#         return str
-
-# def parseResult(str):
-#     result = []
-#     lines = str.split("\n")
-#     del lines[0]
-#     if len(lines) == 0:
-#         return result
-#     if len(lines[0]) == 0:
-#         return result
-# 
-#     headLine = lines[0].split("<|>")
-#     del lines[0]
-#     headers = []
-#     for header in headLine:
-#         if len(header) == 0:
-#             continue
-#         columnInfo = header.split(":")
-#         headers.append(columnInfo[1])
-# 
-#     for line in lines:
-#         if len(line) == 0:
-#             continue
-#         parameters = line.split("<|>")
-#         resultItem = dict()
-#         for i in range(len(headers)):
-#             resultItem[headers[i]] = parameters[i]
-# 
-#         result.append(resultItem)
-# 
-#     return result
-
-# def timer():
-#     try:
-#        #  query = "SQL:SELECT * from NoxCommand"
-#         if Homework.last:
-#             query = "SQL:SELECT * from NoxCommand [ since %s ]" % (Homework.last) 
-#             #query = "SQL:SELECT * from NoxCommand [ since {} ]".format(Homework.last)
-#         result = Homework._hwdb.call(query)
-#         # Parse responses
-#         commands = parseResult(result);
-#         for command in commands:
-#             # Execute command
-# 
-#             mac = getMacAddress(command['arguments'])
-#             Homework.last = command['timestamp']
-#             if is_valid_eth(mac):
-#                 device = { 'mac': mac, 'action': command['command'] }
-#                 devices = [ device ]
-# 
-#                 Homework._hwdb.postEvent(devices)
-# 
-#                 # Insert result
-#                 Homework._hwdb.call("SQL:INSERT into NoxResponse values (\"{}\", '1', \"Success\")".format(command['commandid']))
-#                 Homework._hwdb.call("SQL:INSERT into NoxStatus values (\"{}\", \"{}\", \"{}\") on duplicate key update".format(mac, command['command'], command['source']))
-#             elif not mac:
-#                 Homework._hwdb.call("SQL:INSERT into NoxResponse values (\"{}\", '0', \"Could not find MAC Address for {}\")".format(command['commandid'], command['arguments']))
-#             else:
-#                 Homework._hwdb.call("SQL:INSERT into NoxResponse values (\"{}\", '0', \"{} not recognized as a MAC Address\")".format(command['commandid'], mac))
-# 
-#     except:
-#         traceback.print_exc(file = sys.stdout)
-# 
-#     Homework.post_callback(1, timer)
-
 def handler(message=None):
     print "handling... %s" % (message)
     command = message.split(" ")
@@ -150,19 +69,8 @@ def handler(message=None):
     
 def setup():
     try:
-        #
         Homework.bus.add_signal_receiver(handler,dbus_interface="test.signal.Type", signal_name="udev")
-        #result = Homework._hwdb.call("SQL:select * from NoxStatus")
-        # Parse responses
-        #statuses = parseResult(result)
-        #devices = []
-        #for status in statuses:
-        #    device = { 'mac': getMacAddress(status['device']), 'action': status['state'] }
-        #    devices.append(device)
-        #    Homework.last = status['timestamp']
-
-        #if len(devices) > 0:
-        #    Homework._hwdb.postEvent(devices)
+        #read in permitted devices here and post permits to nox
     except:
         traceback.print_exc(file = sys.stdout)
 
@@ -199,9 +107,6 @@ class homework(core.Component):
         gobject.threads_init()
         run_glib()
         setup()
-        #all functionality in nox is event driven.  post_callback asks nox to call a handler
-        #after a certain time has elapsed.
-        #self.post_callback(1, timer)
 
     def getInterface(self): return str(homework)
 
